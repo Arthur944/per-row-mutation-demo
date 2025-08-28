@@ -9,7 +9,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CircleAlert, CloudDownload, Loader2 } from "lucide-react";
+import { Check, CircleAlert, CloudDownload, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -31,7 +31,7 @@ function useKiosks() {
   return useQuery({
     queryKey: ["kiosks"],
     queryFn: async () => {
-      return data;
+      return [...data];
     },
   });
 }
@@ -41,7 +41,7 @@ function useUpdateMutation() {
   return useMutation({
     mutationKey: ["update"],
     mutationFn: async (args: { id: number }) => {
-      const duration = Math.random() * 5000;
+      const duration = Math.random() * 3000;
       await new Promise((resolve) => setTimeout(resolve, duration));
 
       const kiosk = data.find((kiosk) => kiosk.id === args.id)!;
@@ -51,6 +51,7 @@ function useUpdateMutation() {
 
       const [, , prev] = kiosk.version.split(".");
       kiosk.version = `1.0.${Number(prev) + 1}`;
+      return kiosk;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["kiosks"] });
@@ -162,6 +163,7 @@ const columns = [
       const latest = mutations[mutations.length - 1];
       const pending = latest?.status === "pending";
       const error = latest?.error;
+      const result = latest?.data;
 
       return (
         <div
@@ -185,7 +187,7 @@ const columns = [
           ) : (
             <Tooltip>
               <TooltipTrigger asChild>
-                <CloudDownload />
+                {result ? <Check /> : <CloudDownload />}
               </TooltipTrigger>
               <TooltipContent>Update</TooltipContent>
             </Tooltip>
