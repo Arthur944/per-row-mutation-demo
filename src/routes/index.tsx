@@ -54,7 +54,6 @@ function useUpdateMutation() {
       return kiosk;
     },
     onSettled: async () => {
-      console.log(data);
       await queryClient.invalidateQueries({ queryKey: ["kiosks"] });
     },
   });
@@ -63,14 +62,12 @@ function useUpdateMutation() {
 function App() {
   const updateMutation = useUpdateMutation();
   const kiosks = useKiosks();
-  console.log("data", kiosks.data);
   const table = useReactTable({
     data: kiosks.data ?? [],
     getRowId: (row) => row.id.toString(),
     getCoreRowModel: getCoreRowModel(),
     columns,
   });
-  console.log("table", table.getRowModel().rows);
 
   const selectedIds = Object.keys(table.getState().rowSelection);
 
