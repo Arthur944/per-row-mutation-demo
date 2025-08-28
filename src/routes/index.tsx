@@ -31,7 +31,7 @@ function useKiosks() {
   return useQuery({
     queryKey: ["kiosks"],
     queryFn: async () => {
-      return [...data];
+      return JSON.parse(JSON.stringify(data));
     },
   });
 }
@@ -44,17 +44,18 @@ function useUpdateMutation() {
       const duration = Math.random() * 3000;
       await new Promise((resolve) => setTimeout(resolve, duration));
 
-      const kiosk = data.find((kiosk) => kiosk.id === args.id)!;
-      if (Math.random() > 0.5) {
+      if (Math.random() > 0.75) {
         throw new Error("Something went wrong");
       }
 
+      const kiosk = data.find((kiosk) => kiosk.id === args.id)!;
       const [, , prev] = kiosk.version.split(".");
       kiosk.version = `1.0.${Number(prev) + 1}`;
       return kiosk;
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["kiosks"] });
+    onSettled: async () => {
+      console.log(data);
+      await queryClient.invalidateQueries({ queryKey: ["kiosks"] });
     },
   });
 }
@@ -62,12 +63,14 @@ function useUpdateMutation() {
 function App() {
   const updateMutation = useUpdateMutation();
   const kiosks = useKiosks();
+  console.log("data", kiosks.data);
   const table = useReactTable({
     data: kiosks.data ?? [],
     getRowId: (row) => row.id.toString(),
     getCoreRowModel: getCoreRowModel(),
     columns,
   });
+  console.log("table", table.getRowModel().rows);
 
   const selectedIds = Object.keys(table.getState().rowSelection);
 
@@ -102,23 +105,6 @@ interface Data {
 }
 
 const columnHelper = createColumnHelper<Data>();
-
-const data: Data[] = [
-  { id: 1, name: "Kiosk 1", version: "1.0.0" },
-  { id: 2, name: "Kiosk 2", version: "1.0.0" },
-  { id: 3, name: "Kiosk 3", version: "1.0.0" },
-  { id: 4, name: "Kiosk 4", version: "1.0.0" },
-  { id: 5, name: "Kiosk 5", version: "1.0.0" },
-  { id: 6, name: "Kiosk 6", version: "1.0.0" },
-  { id: 7, name: "Kiosk 7", version: "1.0.0" },
-  { id: 8, name: "Kiosk 8", version: "1.0.0" },
-  { id: 9, name: "Kiosk 9", version: "1.0.0" },
-  { id: 10, name: "Kiosk 10", version: "1.0.0" },
-  { id: 11, name: "Kiosk 11", version: "1.0.0" },
-  { id: 12, name: "Kiosk 12", version: "1.0.0" },
-  { id: 13, name: "Kiosk 13", version: "1.0.0" },
-  { id: 14, name: "Kiosk 14", version: "1.0.0" },
-];
 
 const columns = [
   columnHelper.display({
@@ -172,7 +158,7 @@ const columns = [
             if (pending) {
               return;
             }
-            updateMutation.mutate({ id: row.original.id });
+            updateMutation.mutate({ id: Number(row.original.id) });
           }}
         >
           {pending ? (
@@ -196,4 +182,21 @@ const columns = [
       );
     },
   }),
+];
+
+const data: Data[] = [
+  { id: 1, name: "Kiosk 1", version: "1.0.0" },
+  { id: 2, name: "Kiosk 2", version: "1.0.0" },
+  { id: 3, name: "Kiosk 3", version: "1.0.0" },
+  { id: 4, name: "Kiosk 4", version: "1.0.0" },
+  { id: 5, name: "Kiosk 5", version: "1.0.0" },
+  { id: 6, name: "Kiosk 6", version: "1.0.0" },
+  { id: 7, name: "Kiosk 7", version: "1.0.0" },
+  { id: 8, name: "Kiosk 8", version: "1.0.0" },
+  { id: 9, name: "Kiosk 9", version: "1.0.0" },
+  { id: 10, name: "Kiosk 10", version: "1.0.0" },
+  { id: 11, name: "Kiosk 11", version: "1.0.0" },
+  { id: 12, name: "Kiosk 12", version: "1.0.0" },
+  { id: 13, name: "Kiosk 13", version: "1.0.0" },
+  { id: 14, name: "Kiosk 14", version: "1.0.0" },
 ];
